@@ -895,18 +895,7 @@ def get_animation_data(self,sprite_object,armature,armature_orig):
                             keyframe_data["y"] = round(bone_pos[1],2)
                             
                             if (frame in [0,anim.frame_end]) or (bone_keyframe_duration[bone.name]["last_pos"] != [keyframe_data["x"], keyframe_data["y"]]):
-                                
-                                ### if previous keyframe differs and keyframe duration is greater 1 add an extra keyframe inbetween
-                                if bone_keyframe_duration[bone.name]["pos_duration"] > 1 and (bone_keyframe_duration[bone.name]["last_pos"] != [keyframe_data["x"], keyframe_data["y"]]):
-                                    keyframe_data_last = {}
-                                    keyframe_data_last["duration"] = bone_keyframe_duration[bone.name]["pos_duration"]-1
-                                    keyframe_data_last["curve"] = [.5,0,.5,1] if bake_anim == False else [0,0,1,1]
-                                    keyframe_data_last["x"] = bone_keyframe_duration[bone.name]["last_pos"][0]
-                                    keyframe_data_last["y"] = bone_keyframe_duration[bone.name]["last_pos"][1]
-                                    anim_data["bone"][j]["translateFrame"].insert(0,keyframe_data_last)
-                                    
-                                    keyframe_data["duration"] = 1
-                                    
+
                                 anim_data["bone"][j]["translateFrame"].insert(0,keyframe_data)
                                 bone_keyframe_duration[bone.name]["pos_duration"] = 0
                                 bone_keyframe_duration[bone.name]["last_pos"] = [keyframe_data["x"], keyframe_data["y"]]
@@ -921,18 +910,7 @@ def get_animation_data(self,sprite_object,armature,armature_orig):
                             keyframe_data["rotate"] = bone_rot
                             
                             if (frame in [0,anim.frame_end]) or (bone_keyframe_duration[bone.name]["last_rot"] != keyframe_data["rotate"]):
-                                
-                                ### if previous keyframe differs and keyframe duration is greater 1 add an extra keyframe inbetween
-                                if bone_keyframe_duration[bone.name]["rot_duration"] > 1 and (bone_keyframe_duration[bone.name]["last_rot"] != keyframe_data["rotate"]):
-                                    keyframe_data_last = {}
-                                    keyframe_data_last["duration"] = bone_keyframe_duration[bone.name]["rot_duration"]-1
-                                    keyframe_data_last["curve"] = [.5,0,.5,1] if bake_anim == False else [0,0,1,1]
-                                    keyframe_data_last["rotate"] = bone_keyframe_duration[bone.name]["last_rot"]
-                                    anim_data["bone"][j]["rotateFrame"].insert(0,keyframe_data_last)
-                                    
-                                    keyframe_data["duration"] = 1
-                                
-                                
+
                                 anim_data["bone"][j]["rotateFrame"].insert(0,keyframe_data)
                                 bone_keyframe_duration[bone.name]["rot_duration"] = 0
                                 bone_keyframe_duration[bone.name]["last_rot"] = keyframe_data["rotate"]
@@ -949,18 +927,7 @@ def get_animation_data(self,sprite_object,armature,armature_orig):
                             keyframe_data["y"] = round(bone_scale[1],2)
                             
                             if (frame in [0,anim.frame_end]) or (bone_keyframe_duration[bone.name]["last_scale"] != [keyframe_data["x"], keyframe_data["y"]]):
-                                
-                                ### if previous keyframe differs and keyframe duration is greater 1 add an extra keyframe inbetween
-                                if bone_keyframe_duration[bone.name]["scale_duration"] > 1 and (bone_keyframe_duration[bone.name]["last_scale"] != [keyframe_data["x"], keyframe_data["y"]]):
-                                    keyframe_data_last = {}
-                                    keyframe_data_last["duration"] = bone_keyframe_duration[bone.name]["scale_duration"]-1
-                                    keyframe_data_last["curve"] = [.5,0,.5,1] if bake_anim == False else [0,0,1,1]
-                                    keyframe_data_last["x"] = bone_keyframe_duration[bone.name]["last_scale"][0]
-                                    keyframe_data_last["y"] = bone_keyframe_duration[bone.name]["last_scale"][1]
-                                    anim_data["bone"][j]["scaleFrame"].insert(0,keyframe_data_last)
-                                    
-                                    keyframe_data["duration"] = 1
-                                
+
 #                                if bone_keyframe_duration[bone.name]["last_scale"] != None and ((bone_keyframe_duration[bone.name]["last_scale"][1] < 0 and keyframe_data["y"] > 0) or (bone_keyframe_duration[bone.name]["last_scale"][1] > 0 and keyframe_data["y"] < 0)):
 #                                    keyframe_data["curve"] = []
                                 
@@ -1009,16 +976,6 @@ def get_animation_data(self,sprite_object,armature,armature_orig):
                                     ffd_data["vertices"] = convert_vertex_data_to_pixel_space(verts_relative)     
                                     
                                     if (frame in [0, anim.frame_end]) or (ffd_last_frame_values[data_name] != ffd_data["vertices"]):
-                                        ### if previous keyframe differs and keyframe duration is greater 1 add an extra keyframe inbetween
-                                        if ffd_data["duration"] > 1 and (ffd_last_frame_values[data_name] != ffd_data["vertices"]):
-                                            ffd_data_last = {}
-                                            ffd_data_last["duration"] = ffd_keyframe_duration[data_name]["ffd_duration"]-1
-                                            ffd_data_last["curve"] = [.5,0,.5,1]
-                                            ffd_data_last["vertices"] = ffd_last_frame_values[data_name]
-                                            
-                                            anim_data["ffd"][j]["frame"].insert(0,ffd_data_last)
-                                            ffd_data["duration"] = 1
-                                        
                                         anim_data["ffd"][j]["frame"].insert(0,ffd_data)
                                         ffd_keyframe_duration[data_name]["ffd_duration"] = 0
                                         ffd_last_frame_values[data_name] = ffd_data["vertices"]
