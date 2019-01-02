@@ -121,20 +121,26 @@ class CoaExport():
         self.img = self.original_img.duplicate()
         self.img.undo_group_start()
         for layer in self.img.layers:
-            if layer.visible:
-                name = '{name}.png'.format(name=layer.name)
-                pdb.gimp_image_set_active_layer(self.img, layer)
-                # Crop and the layer position
-                pdb.plug_in_autocrop_layer(self.img, layer)
-                z = 0 - pdb.gimp_image_get_item_position(self.img, layer)
-                if isinstance(layer, gimp.GroupLayer):
-                    if len(layer.children) > 0:
-                        self.sprites.append(self.export_sprite_sheet(layer, name, layer.offsets, z))
-                else:
-                    self.sprites.append(self.export_sprite(layer, name, layer.offsets, z))
+            self.export_sprite_recursive(layer)
         self.write_json()
         self.img.undo_group_end()
         pdb.gimp_image_delete(self.img)
+
+    def export_sprite_recursive(self, layer):
+        ''' Export all layer/GroupLayer '''
+        if not layer.visible:
+            return
+
+        if isinstance(layer, gimp.GroupLayer):
+            for child in layer.children:
+                self.export_sprite_recursive(child)
+        else:
+            pdb.gimp_image_set_active_layer(self.img, layer)
+            # Crop and the layer position
+            pdb.plug_in_autocrop_layer(self.img, layer)
+            name = '{name}.png'.format(name=layer.name)
+            z = 0 - pdb.gimp_image_get_item_position(self.img, layer)
+            self.sprites.append(self.export_sprite(layer, name, layer.offsets, z))
 
     def export_sprite(self, layer, name, position, z):
         ''' Export single layer to png '''
@@ -150,56 +156,6 @@ class CoaExport():
         sprite.position = position
         sprite.opacity = layer.opacity / 100
         sprite.z = z
-        return sprite
-
-    def export_sprite_sheet(self, layer, name, position, z):
-        ''' Export layer group to a sprite sheet '''
-        # Find grid size
-        #frames = len(layer.children)
-        frames = 0
-        for child in layer.children:
-            if child.visible and not isinstance(child, gimp.GroupLayer):
-                frames = frames + 1
-        gridx = floor(sqrt(frames))
-        gridy = ceil(frames / gridx)
-        # TODO! Replace autocrop with a custom function that only crops transparent areas.
-        pdb.plug_in_autocrop_layer(self.img, layer)
-        img2 = gimp.Image(int(layer.width * gridx), int(layer.height * gridy))
-        img2.new_layer('background', img2.width, img2.height)
-        col = 1
-        row = 1
-        name = '{name}.png'.format(name = layer.name)
-        # Looop through child layers in the layer group
-        for child in layer.children:
-            if child.visible and not isinstance(child, gimp.GroupLayer):
-                pdb.gimp_image_set_active_layer(self.img, child)
-                pdb.plug_in_autocrop_layer(self.img, child)
-                x_delta = child.offsets[0] - layer.offsets[0]
-                y_delta = child.offsets[1] - layer.offsets[1]
-                pdb.gimp_edit_copy(child)
-                self.paste_layer(img2,
-                                 '{name}_{col}_{row}'.format(name=child.name, col=col, row=row),
-                                 (layer.width * (col - 1)) + x_delta,
-                                 (layer.height * (row - 1)) + y_delta)
-                if col % gridx > 0:
-                    col = col + 1
-                else:
-                    col = 1
-                    row = row + 1
-        # Flatten and save
-        flat_layer = pdb.gimp_image_merge_visible_layers(img2, 0)
-        sprite_path = os.path.join(self.sprite_path, name)
-        self.save_png(img2, sprite_path)
-        pdb.gimp_image_delete(img2)
-        # Return sprite object with relevant data
-        sprite = Sprite(name)
-        sprite.resource_path = 'sprites/{name}'.format(name=name)
-        sprite.offset = self.offset
-        sprite.position = position
-        sprite.opacity = layer.opacity / 100
-        sprite.z = z
-        sprite.tiles_x = int(gridx)
-        sprite.tiles_y = int(gridy)
         return sprite
         
     def mkdir(self):
